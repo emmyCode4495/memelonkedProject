@@ -1,0 +1,10 @@
+{
+  "name": "memelonked",
+  "displayName": "memelonked",
+  "scheme": "memelonked",
+  "extra": {
+    "eas": {
+      "projectId": "77de7191-b917-4261-8b12-76564da2f221"
+    }
+  }
+}

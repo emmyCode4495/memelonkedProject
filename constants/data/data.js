@@ -1,0 +1,34 @@
+export const tokensData = [
+    {
+        id:1,
+        image:"https://plus.unsplash.com/premium_photo-1669800502105-c181897af983?q=80&w=2874&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        tokenSymbol:"SOL",
+         totalValue:"19,0000",
+        tokenFullName:'Solana',
+        valuePerToken:'$2000'
+    },
+    {
+        id:2,
+        image:"https://plus.unsplash.com/premium_photo-1669800502105-c181897af983?q=80&w=2874&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+         tokenSymbol:"SOL",
+        totalValue:"19,0000",
+      tokenFullName:'Solana',
+        valuePerToken:'$2000'
+    },
+    {
+       id:3,
+        image:"https://plus.unsplash.com/premium_photo-1669800502105-c181897af983?q=80&w=2874&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        tokenSymbol:"SOL",
+          totalValue:"19,0000",
+         tokenFullName:'Solana',
+        valuePerToken:'$2000'
+    },
+    {
+     id:4,
+        image:"https://plus.unsplash.com/premium_photo-1669800502105-c181897af983?q=80&w=2874&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        tokenSymbol:"Faith Friday",
+         totalValue:"19,0000",
+        tokenFullName:'Solana',
+        valuePerToken:'$2000'
+    }
+]
