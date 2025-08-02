@@ -117,7 +117,7 @@ export const convertToPublicKey = (walletAddress) => {
     
     return null;
   } catch (error) {
-    console.error('Error converting wallet address:', error);
+    console.log('Error converting wallet address:', error);
     return null;
   }
 };
@@ -254,7 +254,7 @@ export const useBonkBalance = (publicKey, walletAddress) => {
         }
       }
     } catch (err) {
-      console.error("Error fetching balance:", err);
+      console.log("Error fetching balance:", err);
       
       if (currentWallet === walletKey) {
         if (err.message && err.message.includes('429')) {
@@ -338,11 +338,11 @@ export const useStreamlinedWallet = () => {
           console.log('✅ Streamlined wallet ready:', publicKey.toBase58().slice(0, 8) + '...');
         } else {
           setSessionError('Invalid wallet address format');
-          console.error('❌ Invalid wallet address format');
+          console.log('❌ Invalid wallet address format');
         }
       } else {
         setSessionError('No valid wallet address found in authentication');
-        console.error('❌ No wallet address found in user auth');
+        console.log('❌ No wallet address found in user auth');
       }
     };
 
@@ -390,7 +390,7 @@ export const useStreamlinedWallet = () => {
       }
     } catch (error) {
       setSessionError(error.message);
-      console.error('Failed to refresh wallet connection:', error);
+      console.log('Failed to refresh wallet connection:', error);
     }
   }, [user, walletInfo, lastAuthCheck]);
 
@@ -542,7 +542,7 @@ export const executeStreamlinedBonkTransfer = async (
       
       console.log('✅ Transaction signed with renewed session');
     } catch (signError) {
-      console.error('❌ Transaction signing failed:', signError);
+      console.log('❌ Transaction signing failed:', signError);
       
       // Enhanced error handling for common wallet issues
       if (signError.message && signError.message.includes('User rejected')) {
@@ -570,7 +570,7 @@ export const executeStreamlinedBonkTransfer = async (
       });
       console.log('📤 Transaction sent with signature:', signature);
     } catch (sendError) {
-      console.error('❌ Failed to send transaction:', sendError);
+      console.log('❌ Failed to send transaction:', sendError);
       throw new Error(`Failed to send transaction: ${sendError.message}`);
     }
     
@@ -590,7 +590,7 @@ export const executeStreamlinedBonkTransfer = async (
       console.log('✅ BONK transfer confirmed on blockchain!');
       
     } catch (confirmError) {
-      console.error('❌ Transaction confirmation failed:', confirmError);
+      console.log('❌ Transaction confirmation failed:', confirmError);
       
       // Even if confirmation fails, the transaction might still succeed
       try {
@@ -613,7 +613,7 @@ export const executeStreamlinedBonkTransfer = async (
     };
     
   } catch (error) {
-    console.error('💥 BONK transfer failed:', error);
+    console.log('💥 BONK transfer failed:', error);
     throw error;
   }
 };

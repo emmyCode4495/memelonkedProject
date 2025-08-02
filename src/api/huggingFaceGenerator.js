@@ -22,7 +22,7 @@ const generateHuggingBonkRoast = async (userInput) => {
     const output = response.data[0]?.generated_text;
     return output || 'Oops! No roast generated.';
   } catch (error) {
-    console.error('Roast Generation Failed:', error?.response?.data || error.message);
+    console.log('Roast Generation Failed:', error?.response?.data || error.message);
     return 'Failed to generate roast.';
   }
 };

@@ -77,7 +77,7 @@ const ReelsCommentModal = ({
   // Fixed fetchComments function - using enndpoint.main consistently
   const fetchComments = async () => {
     if (!reelId) {
-      console.error('ReelId is missing');
+      console.log('ReelId is missing');
       return;
     }
 
@@ -99,7 +99,7 @@ const ReelsCommentModal = ({
       console.log('Comments response:', res.data);
       setComments(res.data.comments || []);
     } catch (err) {
-      console.error('Error fetching comments:', {
+      console.log('Error fetching comments:', {
         message: err.message,
         status: err.response?.status,
         statusText: err.response?.statusText,
@@ -141,7 +141,7 @@ const ReelsCommentModal = ({
       // Refresh comments after posting
       await fetchComments();
     } catch (err) {
-      console.error('Failed to post comment:', {
+      console.log('Failed to post comment:', {
         message: err.message,
         status: err.response?.status,
         statusText: err.response?.statusText,
@@ -152,46 +152,6 @@ const ReelsCommentModal = ({
       setPosting(false);
     }
   };
-
-  // Fixed postReplyComment function
-//   const postReplyComment = async () => {
-//     if (!replyInput.trim() || !reelId || !replyingToComment?.id) return;
-    
-//     setPostingReply(true);
-//     try {
-//       console.log('Posting reply for comment:', replyingToComment.id);
-      
-//       const url = `http://${enndpoint.main}:5000/api/reels/${reelId}/comments/${replyingToComment.id}/reply`;
-//       console.log('Posting reply to URL:', url);
-      
-//       await axios.post(url, {
-//         uid:userId,
-//         replyText: replyInput.trim(),
-//       }, {
-//         timeout: 10000,
-//         headers: {
-//           'Content-Type': 'application/json',
-//         }
-//       });
-      
-//       setReplyInput('');
-//       setReplyModalVisible(false);
-//       setReplyingToComment(null);
-      
-//       // Refresh comments after posting reply
-//       await fetchComments();
-//     } catch (err) {
-//       console.error('Failed to post reply:', {
-//         message: err.message,
-//         status: err.response?.status,
-//         statusText: err.response?.statusText,
-//         data: err.response?.data,
-//         url: err.config?.url
-//       });
-//     } finally {
-//       setPostingReply(false);
-//     }
-//   };
 
 
   const postReplyComment = async () => {
@@ -232,7 +192,7 @@ const ReelsCommentModal = ({
       // Refresh comments to show the new reply
       await fetchComments();
     } catch (err) {
-      console.error('Failed to post reply:', {
+      console.log('Failed to post reply:', {
         message: err.message,
         status: err.response?.status,
         statusText: err.response?.statusText,

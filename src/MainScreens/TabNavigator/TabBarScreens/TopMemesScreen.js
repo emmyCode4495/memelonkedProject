@@ -26,24 +26,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import Video from 'react-native-video';
 import LinearGradient from 'react-native-linear-gradient';
 import { launchImageLibrary } from 'react-native-image-picker';
-import { transact } from '@solana-mobile/mobile-wallet-adapter-protocol-web3js';
-import { 
-  Connection, 
-  PublicKey, 
-  clusterApiUrl, 
-  Transaction,
-  SystemProgram,
-  LAMPORTS_PER_SOL
-} from '@solana/web3.js';
-import {
-  TOKEN_PROGRAM_ID,
-  getAssociatedTokenAddress,
-  createAssociatedTokenAccountInstruction,
-  createTransferInstruction,
-  getAccount,
-  TokenAccountNotFoundError,
-  TokenInvalidAccountOwnerError,
-} from '@solana/spl-token';
+
 
 import { executeStreamlinedBonkTransfer } from './bonkTransfer';
 import { AuthContext } from '../../../persistence/AuthContext';
@@ -55,9 +38,6 @@ import { BONK_CONFIG, convertToPublicKey, createReliableConnection, getValidUser
 
 const { width } = Dimensions.get('window');
 
-/**
- * Main TopMemesScreen Component
- */
 const TopMemesScreen = () => {
   // State Management
   const [memesFeed, setMemesFeed] = useState([]);
@@ -135,7 +115,7 @@ const TopMemesScreen = () => {
         setMemesFeed([]);
       }
     } catch (err) {
-      console.error('Fetch Memes Feed Error:', err);
+      console.log('Fetch Memes Feed Error:', err);
       Alert.alert('Error', 'Failed to fetch memes feed. Please try again.');
       setMemesFeed([]);
     } finally {
@@ -213,7 +193,7 @@ const TopMemesScreen = () => {
         })
       );
     } catch (error) {
-      console.error('Error liking meme:', error.message);
+      console.log('Error liking meme:', error.message);
       setLikedPosts(prev => ({ ...prev, [memeId]: false }));
     }
   };
@@ -232,7 +212,7 @@ const TopMemesScreen = () => {
       }
     } catch (error) {
       Alert.alert('Error', 'Unable to share the meme.');
-      console.error('Share Error:', error);
+      console.log('Share Error:', error);
     }
   };
 
@@ -270,7 +250,7 @@ const TopMemesScreen = () => {
         errorMessage = `Unexpected error: ${error.message}`;
       }
 
-      console.error('Create Meme Error:', error);
+      console.log('Create Meme Error:', error);
       Alert.alert('Error', errorMessage);
     } finally {
       setSubmitting(false);
@@ -471,7 +451,7 @@ const TopMemesScreen = () => {
       }
 
     } catch (error) {
-      console.error('💥 BONK gift failed:', error);
+      console.log('💥 BONK gift failed:', error);
       
       let errorMessage = 'Failed to send BONK gift. Please try again.';
       

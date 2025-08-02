@@ -41,7 +41,7 @@ export default function ConnectButton({ onConnect }) {
           });
         }
       } catch (err) {
-        console.error('Login lookup failed:', err.message);
+        console.log('Login lookup failed:', err.message);
        
         onConnect({
           address: walletAddress,

@@ -23,7 +23,7 @@ export default function DisconnectWallet({ onDisconnect, authorization }) {
       onDisconnect();
       
     } catch (error) {
-      console.error('Disconnection error:', error);
+      console.log('Disconnection error:', error);
       Alert.alert(
         'Disconnection Error',
         'There was an issue disconnecting your wallet. Please try again.',

@@ -72,7 +72,7 @@ const ProfileDetailsSetup = ({ route, navigation }) => {
         navigation.navigate('Home');
       }
     } catch (err) {
-      console.error(err);
+      console.log(err);
 
       let errorMessage = 'Could not create user';
 

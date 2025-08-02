@@ -6,8 +6,6 @@ import axios from 'axios';
 import { launchImageLibrary } from 'react-native-image-picker';
 import Video from 'react-native-video';
 import { useNavigation } from '@react-navigation/native';
-// import { UserContext } from '../../../context/UserContext';
-// import { WalletContext } from '../../../context/WalletContext';
 import enndpoint from '../../../constants/enndpoint';
 import { AuthContext } from '../../persistence/AuthContext';
 import {  HF_TOKEN, HF_API_URL } from '@env';
@@ -74,7 +72,7 @@ const CreateMemePage = () => {
         if (response.didCancel) {
           console.log('User cancelled picker');
         } else if (response.errorCode) {
-          console.error('ImagePicker Error: ', response.errorMessage);
+          console.log('ImagePicker Error: ', response.errorMessage);
         } else {
           const asset = response.assets[0];
           setMediaUri(asset.uri);
@@ -92,9 +90,9 @@ const CreateMemePage = () => {
       quality: 1,
     };
 
-    // Add platform-specific options for better audio access
+   
     if (Platform.OS === 'ios') {
-      options.mediaTypes = 'All'; // Allows access to all media types including audio
+      options.mediaTypes = 'All'; 
     }
 
     launchImageLibrary(
@@ -103,7 +101,7 @@ const CreateMemePage = () => {
         if (response.didCancel) {
           console.log('User cancelled sound picker');
         } else if (response.errorCode) {
-          console.error('Audio Picker Error: ', response.errorMessage);
+          console.log('Audio Picker Error: ', response.errorMessage);
           Alert.alert('Error', 'Failed to select audio file');
         } else {
           const asset = response.assets[0];
@@ -113,7 +111,7 @@ const CreateMemePage = () => {
                              asset.fileName?.match(/\.(mp3|wav|m4a|aac|ogg|flac)$/i);
           
           if (isAudioFile || !asset.type) {
-            // If type is undefined, assume it might be audio and let the user try
+          
             setCustomSoundUri(asset.uri);
             setSelectedSound({
               id: 'custom',
@@ -193,7 +191,7 @@ const CreateMemePage = () => {
       setInputText(finalRoast); // Replace the input text with generated roast
 
     } catch (error) {
-      console.error('API Error:', error);
+      console.log('API Error:', error);
       const finalRoast = fallbackRoasts[Math.floor(Math.random() * fallbackRoasts.length)];
       setGeneratedRoast(finalRoast);
       setInputText(finalRoast); // Replace the input text with generated roast
@@ -242,55 +240,14 @@ const CreateMemePage = () => {
         );
       }
     } catch (error) {
-      console.error('Post Error:', error);
+      console.log('Post Error:', error);
       Alert.alert('Error', 'Failed to post meme. Please try again.');
     } finally {
       setPosting(false);
     }
   };
 
-  const renderSoundItem = ({ item }) => (
-    <TouchableOpacity
-      style={[
-        styles.soundItem,
-        selectedSound?.id === item.id && styles.soundItemSelected
-      ]}
-      onPress={() => {
-        setSelectedSound(item);
-        setShowSoundPicker(false);
-      }}
-    >
-      <LinearGradient
-        colors={selectedSound?.id === item.id 
-          ? [web3Colors.primary, web3Colors.secondary] 
-          : ['rgba(255, 255, 255, 0.08)', 'rgba(255, 255, 255, 0.02)']
-        }
-        style={styles.soundItemGradient}
-      >
-        <View style={styles.soundItemContent}>
-          <Ionicons 
-            name="musical-notes" 
-            size={20} 
-            color={selectedSound?.id === item.id ? 'white' : web3Colors.primary} 
-          />
-          <View style={styles.soundItemText}>
-            <Text style={[
-              styles.soundItemName,
-              selectedSound?.id === item.id && styles.soundItemNameSelected
-            ]}>
-              {item.name}
-            </Text>
-            <Text style={[
-              styles.soundItemDuration,
-              selectedSound?.id === item.id && styles.soundItemDurationSelected
-            ]}>
-              {item.duration}
-            </Text>
-          </View>
-        </View>
-      </LinearGradient>
-    </TouchableOpacity>
-  );
+  
 
   return (
     <LinearGradient
@@ -440,53 +397,7 @@ const CreateMemePage = () => {
         </View>
       )}
 
-      {/* Sound Picker Modal */}
-      <Modal
-        visible={showSoundPicker}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowSoundPicker(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <LinearGradient
-              colors={['rgba(26, 27, 46, 0.95)', 'rgba(10, 11, 30, 0.95)']}
-              style={styles.modalGradient}
-            >
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Choose Sound Effect</Text>
-                <TouchableOpacity
-                  onPress={() => setShowSoundPicker(false)}
-                  style={styles.modalCloseButton}
-                >
-                  <Ionicons name="close" size={24} color={web3Colors.text} />
-                </TouchableOpacity>
-              </View>
-
-              <FlatList
-                data={SAMPLE_SOUNDS}
-                renderItem={renderSoundItem}
-                keyExtractor={(item) => item.id}
-                style={styles.soundList}
-                showsVerticalScrollIndicator={false}
-              />
-
-              <TouchableOpacity
-                style={styles.customSoundButton}
-                onPress={handleSelectCustomSound}
-              >
-                <LinearGradient
-                  colors={['rgba(0, 212, 255, 0.2)', 'rgba(255, 107, 53, 0.2)']}
-                  style={styles.customSoundButtonGradient}
-                >
-                  <Ionicons name="musical-note" size={20} color={web3Colors.primary} />
-                  <Text style={styles.customSoundButtonText}>Select Audio File</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            </LinearGradient>
-          </View>
-        </View>
-      </Modal>
+  
     </LinearGradient>
   )
 }

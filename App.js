@@ -1,7 +1,7 @@
 import 'react-native-get-random-values';
 
 import { StyleSheet, Text, View } from 'react-native';
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
@@ -14,9 +14,25 @@ const Stack = createNativeStackNavigator();
 
 const App = () => {
 
-   useEffect(() => {
-    RNBootSplash.hide({ fade: true });
+   const [appIsReady, setAppIsReady] = useState(false);
+
+  useEffect(() => {
+    const prepare = async () => {
+      try {
+        // simulate async tasks like font loading, auth check
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        setAppIsReady(true);
+        RNBootSplash.hide({ fade: true }); // Hide only when ready
+      }
+    };
+
+    prepare();
   }, []);
+
+  if (!appIsReady) return null; // Don’t render UI until ready
 
   return (
     <SafeAreaProvider>

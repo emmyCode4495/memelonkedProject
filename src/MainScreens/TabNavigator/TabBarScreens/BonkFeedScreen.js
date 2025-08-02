@@ -156,7 +156,7 @@ const convertToPublicKey = (walletAddress) => {
     
     return null;
   } catch (error) {
-    console.error('Error converting wallet address:', error);
+    console.log('Error converting wallet address:', error);
     return null;
   }
 };
@@ -222,7 +222,7 @@ const useBonkBalance = (publicKey, walletAddress) => {
         }
       }
     } catch (err) {
-      console.error("Error fetching balance:", err);
+      console.log("Error fetching balance:", err);
       
       if (currentWallet === walletKey) {
         if (err.message && err.message.includes('429')) {
@@ -398,7 +398,7 @@ const executeStreamlinedBonkTransfer = async (
       
       console.log('✅ Transaction signed with renewed session');
     } catch (signError) {
-      console.error('❌ Transaction signing failed:', signError);
+      console.log('❌ Transaction signing failed:', signError);
       
       // Enhanced error handling for common wallet issues
       if (signError.message && signError.message.includes('User rejected')) {
@@ -426,7 +426,7 @@ const executeStreamlinedBonkTransfer = async (
       });
       console.log('📤 Transaction sent with signature:', signature);
     } catch (sendError) {
-      console.error('❌ Failed to send transaction:', sendError);
+      console.log('❌ Failed to send transaction:', sendError);
       throw new Error(`Failed to send transaction: ${sendError.message}`);
     }
     
@@ -446,7 +446,7 @@ const executeStreamlinedBonkTransfer = async (
       console.log('✅ BONK transfer confirmed on blockchain!');
       
     } catch (confirmError) {
-      console.error('❌ Transaction confirmation failed:', confirmError);
+      console.log('❌ Transaction confirmation failed:', confirmError);
       
       // Even if confirmation fails, the transaction might still succeed
       try {
@@ -469,7 +469,7 @@ const executeStreamlinedBonkTransfer = async (
     };
     
   } catch (error) {
-    console.error('💥 BONK transfer failed:', error);
+    console.log('💥 BONK transfer failed:', error);
     throw error;
   }
 };
@@ -504,11 +504,11 @@ const useStreamlinedWallet = () => {
           console.log('✅ Streamlined wallet ready:', publicKey.toBase58().slice(0, 8) + '...');
         } else {
           setSessionError('Invalid wallet address format');
-          console.error('❌ Invalid wallet address format');
+          console.log('❌ Invalid wallet address format');
         }
       } else {
         setSessionError('No valid wallet address found in authentication');
-        console.error('❌ No wallet address found in user auth');
+        console.log('❌ No wallet address found in user auth');
       }
     };
 
@@ -556,7 +556,7 @@ const useStreamlinedWallet = () => {
       }
     } catch (error) {
       setSessionError(error.message);
-      console.error('Failed to refresh wallet connection:', error);
+      console.log('Failed to refresh wallet connection:', error);
     }
   }, [user, walletInfo, lastAuthCheck]);
 
@@ -656,7 +656,7 @@ const BonkFeedScreen = () => {
         setNewsFeed([]);
       }
     } catch (err) {
-      console.error('Fetch News Feed Error:', err);
+      console.log('Fetch News Feed Error:', err);
       Alert.alert('Error', 'Failed to fetch news feed. Please try again.');
       setNewsFeed([]);
     } finally {
@@ -892,7 +892,7 @@ const handleStreamlinedSendGift = async () => {
     }
 
   } catch (error) {
-    console.error('💥 BONK gift failed:', error);
+    console.log('💥 BONK gift failed:', error);
     
     let errorMessage = 'Failed to send BONK gift. Please try again.';
     
@@ -988,7 +988,7 @@ const handleStreamlinedSendGift = async () => {
         errorMessage = `Unexpected error: ${error.message}`;
       }
 
-      console.error('Create Post Error:', error);
+      console.log('Create Post Error:', error);
       Alert.alert('Error', errorMessage);
     } finally {
       setSubmitting(false);
@@ -1036,7 +1036,7 @@ const handleStreamlinedSendGift = async () => {
         })
       );
     } catch (error) {
-      console.error('Error liking post:', error.message);
+      console.log('Error liking post:', error.message);
       setLikedPosts(prev => ({ ...prev, [postId]: false }));
     }
   };
@@ -1055,7 +1055,7 @@ const handleStreamlinedSendGift = async () => {
       }
     } catch (error) {
       Alert.alert('Error', 'Unable to share the post.');
-      console.error('Share Error:', error);
+      console.log('Share Error:', error);
     }
   };
 
@@ -2092,6 +2092,7 @@ const styles = StyleSheet.create({
   // Feed Container
   feedContainer: {
     paddingVertical: 10,
+    paddingBottom:120
   },
   
   // Post Card Styles
@@ -2346,7 +2347,7 @@ const styles = StyleSheet.create({
   // FAB
   fab: {
     position: 'absolute',
-    bottom: 30,
+    bottom: 140,
     right: 20,
     width: 56,
     height: 56,

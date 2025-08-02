@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
           setWalletInfo(JSON.parse(storedWallet));
         }
       } catch (err) {
-        console.error('Failed to load auth data from storage', err);
+        console.log('Failed to load auth data from storage', err);
       }
     };
 

@@ -124,7 +124,7 @@ const WalletConnectScreen = () => {
             publicKey = new PublicKey(bytes);
             console.log('Successfully converted Base64 to PublicKey:', publicKey.toBase58());
           } catch (base64Error) {
-            console.error('Base64 conversion failed:', base64Error);
+            console.log('Base64 conversion failed:', base64Error);
             throw new Error('Failed to convert Base64 address');
           }
         }
@@ -152,8 +152,8 @@ const WalletConnectScreen = () => {
         console.log('Public key set successfully:', publicKey.toBase58());
         
       } catch (error) {
-        console.error('Invalid public key error:', error);
-        console.error('Address that caused error:', auth.address);
+        console.log('Invalid public key error:', error);
+        console.log('Address that caused error:', auth.address);
         
         let errorMessage = 'Invalid wallet address format';
         if (error.message.includes('Non-base58')) {
@@ -193,7 +193,7 @@ const WalletConnectScreen = () => {
           }
           walletAddress = new PublicKey(bytes).toBase58();
         } catch (conversionError) {
-          console.error('Base64 conversion failed in continue:', conversionError);
+          console.log('Base64 conversion failed in continue:', conversionError);
           throw new Error('Failed to process wallet address');
         }
       } else if (walletAddress instanceof Uint8Array || Buffer.isBuffer(walletAddress)) {
@@ -221,8 +221,8 @@ const WalletConnectScreen = () => {
         });
       }
     } catch (error) {
-      console.error("Continue button error:", error);
-      console.error("Error details:", {
+      console.log("Continue button error:", error);
+      console.log("Error details:", {
         message: error.message,
         response: error.response?.data,
         status: error.response?.status,
