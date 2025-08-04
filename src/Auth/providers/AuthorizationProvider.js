@@ -6,9 +6,9 @@ import { toUint8Array } from 'js-base64';
 import { RPC_ENDPOINT } from './ConnectionProvider';
 
 const APP_IDENTITY = {
-  name: 'React Native dApp',
+  name: 'Memelonked',
   uri: 'https://solanamobile.com',
-  icon: 'favicon.ico',
+  icon: require('../../../assets/images/memelogo.png'),
 };
 
 function getPublicKeyFromAddress(address) {

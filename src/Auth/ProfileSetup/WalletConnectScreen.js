@@ -372,7 +372,6 @@ const WalletConnectScreen = () => {
               {[
                 { icon: 'lightning-bolt', text: 'Lightning Fast Transactions' },
                 { icon: 'shield-check', text: 'Secure & Decentralized' },
-                { icon: 'coins', text: 'Multi-Token Support' },
               ].map((feature, index) => (
                 <View key={index} style={styles.featureItem}>
                   <MaterialCommunityIcons 

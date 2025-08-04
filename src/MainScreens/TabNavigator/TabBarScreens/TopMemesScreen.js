@@ -17,7 +17,8 @@ import {
   Share,
   Dimensions,
   Linking,
-  Platform
+  Platform,
+  RefreshControl,
 } from 'react-native';
 import axios from 'axios';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -27,14 +28,21 @@ import Video from 'react-native-video';
 import LinearGradient from 'react-native-linear-gradient';
 import { launchImageLibrary } from 'react-native-image-picker';
 
-
 import { executeStreamlinedBonkTransfer } from './bonkTransfer';
 import { AuthContext } from '../../../persistence/AuthContext';
 import enndpoint from '../../../../constants/enndpoint';
 import CommentModal from '../../../components/CommentModal/CommentModal';
 import MemeComponents from '../../../components/AIRoastComponents/MemeCard';
-import { BONK_CONFIG, convertToPublicKey, createReliableConnection, getValidUserId, useBonkBalance, useStreamlinedWallet, validateWalletAddress, web3Colors } from '../../../../utils/ConstantUtils';
-
+import {
+  BONK_CONFIG,
+  convertToPublicKey,
+  createReliableConnection,
+  getValidUserId,
+  useBonkBalance,
+  useStreamlinedWallet,
+  validateWalletAddress,
+  web3Colors,
+} from '../../../../utils/ConstantUtils';
 
 const { width } = Dimensions.get('window');
 
@@ -54,35 +62,35 @@ const TopMemesScreen = () => {
   const [giftAmount, setGiftAmount] = useState('');
   const [giftLoading, setGiftLoading] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Context and Hooks
   const { user, walletInfo } = useContext(AuthContext);
-  
-  const { 
+
+  const {
     isReady: walletReady,
     publicKey: userPublicKey,
     isConnected,
     sessionError,
     refreshConnection,
-    walletAddress
+    walletAddress,
   } = useStreamlinedWallet();
-  
-  const { 
-  MemeCard, 
-  LoadingScreen, 
-  EmptyState, 
-  FloatingActionButton,
-  GiftModal,
-  CreateMemeModal
-} = MemeComponents;
 
+  const {
+    MemeCard,
+    LoadingScreen,
+    EmptyState,
+    FloatingActionButton,
+    GiftModal,
+    CreateMemeModal,
+  } = MemeComponents;
 
-  const { 
-    balance: userBonkBalance, 
-    loading: balanceLoading, 
+  const {
+    balance: userBonkBalance,
+    loading: balanceLoading,
     fetchBalance,
     refreshAfterTransaction,
-    currentWallet
+    currentWallet,
   } = useBonkBalance(userPublicKey, walletAddress);
 
   // Effects
@@ -101,13 +109,16 @@ const TopMemesScreen = () => {
           .map(meme => ({
             ...meme,
             owner: {
-              username: `memer_${meme.userId?.slice(-4) || Math.random().toString(36).substr(2, 4)}`,
-              walletAddress: meme.userWallet || null
+              username: `memer_${
+                meme.userId?.slice(-4) ||
+                Math.random().toString(36).substr(2, 4)
+              }`,
+              walletAddress: meme.userWallet || null,
             },
             comments: meme.comments || [],
             likes: meme.likes || [],
             gifts: meme.gifts || [],
-            shares: meme.shares || []
+            shares: meme.shares || [],
           }));
         setMemesFeed(sortedMemes);
       } else {
@@ -123,12 +134,24 @@ const TopMemesScreen = () => {
     }
   };
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await fetchMemesFeed();
+    } catch (error) {
+      console.log('Refresh error:', error);
+      Alert.alert('Error', 'Failed to refresh feed');
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   // Helper Functions
-  const isCurrentUserPost = (post) => {
+  const isCurrentUserPost = post => {
     const currentUserId = getValidUserId(user, walletInfo);
     const currentUserWallet = user?.walletAddress || walletInfo?.address;
-    
-    const normalizeWallet = (wallet) => {
+
+    const normalizeWallet = wallet => {
       if (!wallet) return null;
       try {
         const publicKey = convertToPublicKey(wallet);
@@ -137,22 +160,28 @@ const TopMemesScreen = () => {
         return null;
       }
     };
-    
+
     const currentWalletNormalized = normalizeWallet(currentUserWallet);
-    const postWalletNormalized = normalizeWallet(post.owner?.walletAddress || post.userWallet);
-    
+    const postWalletNormalized = normalizeWallet(
+      post.owner?.walletAddress || post.userWallet,
+    );
+
     const postOwnerId = post.userId || post.owner?.uid || post.owner?.id;
-    
-    return currentUserId === postOwnerId || 
-           (currentWalletNormalized && postWalletNormalized && currentWalletNormalized === postWalletNormalized);
+
+    return (
+      currentUserId === postOwnerId ||
+      (currentWalletNormalized &&
+        postWalletNormalized &&
+        currentWalletNormalized === postWalletNormalized)
+    );
   };
 
-  const hasValidWallet = (post) => {
+  const hasValidWallet = post => {
     const recipientWallet = post.owner?.walletAddress || post.userWallet;
     return validateWalletAddress(recipientWallet);
   };
 
-  const handleLike = async (memeId) => {
+  const handleLike = async memeId => {
     if (likedPosts[memeId]) return;
 
     const newScale = new Animated.Value(0);
@@ -180,17 +209,20 @@ const TopMemesScreen = () => {
         userId: getValidUserId(user, walletInfo),
       });
 
-      setMemesFeed(prevFeed => 
+      setMemesFeed(prevFeed =>
         prevFeed.map(meme => {
           if (meme.id === memeId) {
             const currentLikes = Array.isArray(meme.likes) ? meme.likes : [];
             return {
               ...meme,
-              likes: [...currentLikes, { userId: getValidUserId(user, walletInfo) }]
+              likes: [
+                ...currentLikes,
+                { userId: getValidUserId(user, walletInfo) },
+              ],
             };
           }
           return meme;
-        })
+        }),
       );
     } catch (error) {
       console.log('Error liking meme:', error.message);
@@ -198,7 +230,7 @@ const TopMemesScreen = () => {
     }
   };
 
-  const handleShare = async (memeId) => {
+  const handleShare = async memeId => {
     try {
       const memeLink = `https://your-app.com/memes/${memeId}`;
       const result = await Share.share({
@@ -242,10 +274,12 @@ const TopMemesScreen = () => {
       let errorMessage = 'Failed to create meme.';
       if (error.response) {
         const status = error.response.status;
-        const backendMessage = error.response.data?.message || JSON.stringify(error.response.data);
+        const backendMessage =
+          error.response.data?.message || JSON.stringify(error.response.data);
         errorMessage = `Server Error (${status}): ${backendMessage}`;
       } else if (error.request) {
-        errorMessage = 'No response from server. Please check your network connection.';
+        errorMessage =
+          'No response from server. Please check your network connection.';
       } else {
         errorMessage = `Unexpected error: ${error.message}`;
       }
@@ -258,33 +292,34 @@ const TopMemesScreen = () => {
   };
 
   // Gift Functions
-  const openGiftModal = (post) => {
+  const openGiftModal = post => {
     if (!walletReady || !userPublicKey) {
       Alert.alert(
-        'Wallet Not Ready', 
-        sessionError || 'Your wallet is not properly connected. Please refresh the app and try again.',
+        'Wallet Not Ready',
+        sessionError ||
+          'Your wallet is not properly connected. Please refresh the app and try again.',
         [
           { text: 'Cancel', style: 'cancel' },
-          { text: 'Refresh', onPress: refreshConnection }
-        ]
+          { text: 'Refresh', onPress: refreshConnection },
+        ],
       );
       return;
     }
-    
+
     if (isCurrentUserPost(post)) {
       Alert.alert(
-        'Cannot Gift Own Meme', 
+        'Cannot Gift Own Meme',
         'You cannot send a gift to your own meme. Share it with others to receive gifts!',
-        [{ text: 'Got it', style: 'default' }]
+        [{ text: 'Got it', style: 'default' }],
       );
       return;
     }
 
     if (!hasValidWallet(post)) {
       Alert.alert(
-        'Invalid Recipient Wallet', 
+        'Invalid Recipient Wallet',
         'The meme creator does not have a valid Solana wallet address.',
-        [{ text: 'Understood', style: 'default' }]
+        [{ text: 'Understood', style: 'default' }],
       );
       return;
     }
@@ -296,18 +331,21 @@ const TopMemesScreen = () => {
 
   const handleStreamlinedSendGift = async () => {
     if (!giftAmount || isNaN(giftAmount) || parseFloat(giftAmount) <= 0) {
-      Alert.alert('Invalid Amount', 'Please enter a valid BONK amount greater than 0.');
+      Alert.alert(
+        'Invalid Amount',
+        'Please enter a valid BONK amount greater than 0.',
+      );
       return;
     }
 
     if (!userPublicKey || !walletReady) {
       Alert.alert(
-        'Wallet Not Ready', 
+        'Wallet Not Ready',
         'Your wallet is not properly connected. Please refresh the connection.',
         [
           { text: 'Cancel', style: 'cancel' },
-          { text: 'Refresh', onPress: refreshConnection }
-        ]
+          { text: 'Refresh', onPress: refreshConnection },
+        ],
       );
       return;
     }
@@ -323,14 +361,17 @@ const TopMemesScreen = () => {
     await fetchBalance(true);
 
     if (userBonkBalance === null) {
-      Alert.alert('Balance Error', 'Unable to fetch your BONK balance. Please refresh.');
+      Alert.alert(
+        'Balance Error',
+        'Unable to fetch your BONK balance. Please refresh.',
+      );
       return;
     }
 
     if (userBonkBalance < amount) {
       Alert.alert(
-        'Insufficient Balance', 
-        `You need ${amount.toLocaleString()} BONK but only have ${userBonkBalance.toLocaleString()} BONK.`
+        'Insufficient Balance',
+        `You need ${amount.toLocaleString()} BONK but only have ${userBonkBalance.toLocaleString()} BONK.`,
       );
       return;
     }
@@ -338,13 +379,17 @@ const TopMemesScreen = () => {
     try {
       setGiftLoading(true);
 
-      const recipientWalletAddress = selectedPost.owner?.walletAddress || selectedPost.userWallet;
-      const recipientId = selectedPost.userId || selectedPost.owner?.uid || selectedPost.owner?.id;
+      const recipientWalletAddress =
+        selectedPost.owner?.walletAddress || selectedPost.userWallet;
+      const recipientId =
+        selectedPost.userId ||
+        selectedPost.owner?.uid ||
+        selectedPost.owner?.id;
 
       console.log('🎁 Preparing BONK gift for meme with session validation:', {
         recipient: recipientWalletAddress,
         amount: amount.toLocaleString(),
-        meme: selectedPostId
+        meme: selectedPostId,
       });
 
       if (!validateWalletAddress(recipientWalletAddress)) {
@@ -369,164 +414,189 @@ const TopMemesScreen = () => {
         amount: amount,
         token: 'BONK',
         senderBalanceAtTime: userBonkBalance,
-        status: 'pending'
+        status: 'pending',
       };
 
       console.log('📝 Creating gift record in database...');
       const giftResponse = await axios.post(
-        `${enndpoint.main}/api/gifts/create`, 
+        `${enndpoint.main}/api/gifts/create`,
         giftData,
         {
           headers: { 'Content-Type': 'application/json' },
           timeout: 10000,
-        }
+        },
       );
-      
+
       if (!giftResponse.data.success) {
-        throw new Error(giftResponse.data.message || 'Failed to create gift record');
+        throw new Error(
+          giftResponse.data.message || 'Failed to create gift record',
+        );
       }
-      
+
       const giftId = giftResponse.data.giftId;
       console.log('✅ Gift record created with ID:', giftId);
 
       // Get reliable connection
       const connection = await createReliableConnection();
-      
+
       // Execute blockchain transfer
-      console.log('🚀 Executing blockchain transfer with session validation...');
-      
+      console.log(
+        '🚀 Executing blockchain transfer with session validation...',
+      );
+
       const transferResult = await executeStreamlinedBonkTransfer(
         userPublicKey,
         recipientPublicKey,
         amount,
-        connection
+        connection,
       );
 
       if (transferResult.success) {
-        console.log('✅ Blockchain transfer successful:', transferResult.signature);
-        
+        console.log(
+          '✅ Blockchain transfer successful:',
+          transferResult.signature,
+        );
+
         // Update gift record with transaction signature
         const completeData = {
           giftId: giftId,
           transactionSignature: transferResult.signature,
-          explorerUrl: transferResult.explorerUrl
+          explorerUrl: transferResult.explorerUrl,
         };
 
         console.log('📝 Completing gift record...');
         const completeResponse = await axios.post(
-          `${enndpoint.main}/api/gifts/complete`, 
-          completeData
+          `${enndpoint.main}/api/gifts/complete`,
+          completeData,
         );
-        
+
         if (completeResponse.data.success) {
           // Refresh balance from blockchain
           console.log('🔄 Refreshing balance after successful transaction...');
           await refreshAfterTransaction();
-          
+
           // Update UI
           updateMemeGifts(amount);
-          
+
           // Show success
           Alert.alert(
             '🎉 BONK Gift Sent Successfully!',
-            `${amount.toLocaleString()} BONK sent to @${selectedPost.owner?.username || 'Anonymous'} for their epic meme!\n\n✅ Confirmed on Solana blockchain`,
+            `${amount.toLocaleString()} BONK sent to @${
+              selectedPost.owner?.username || 'Anonymous'
+            } for their epic meme!\n\n✅ Confirmed on Solana blockchain`,
             [
-              { text: 'View on Explorer', onPress: () => {
-                if (Platform.OS === 'web') {
-                  window.open(transferResult.explorerUrl, '_blank');
-                } else {
-                  Linking.openURL(transferResult.explorerUrl);
-                }
-              }},
-              { text: 'Done', onPress: () => {
-                setGiftModalVisible(false);
-                setGiftAmount('');
-                setSelectedPost(null);
-              }}
-            ]
+              {
+                text: 'View on Explorer',
+                onPress: () => {
+                  if (Platform.OS === 'web') {
+                    window.open(transferResult.explorerUrl, '_blank');
+                  } else {
+                    Linking.openURL(transferResult.explorerUrl);
+                  }
+                },
+              },
+              {
+                text: 'Done',
+                onPress: () => {
+                  setGiftModalVisible(false);
+                  setGiftAmount('');
+                  setSelectedPost(null);
+                },
+              },
+            ],
           );
-          
+
           console.log('🎉 BONK gift for meme completed successfully!');
         }
       }
-
     } catch (error) {
       console.log('💥 BONK gift failed:', error);
-      
+
       let errorMessage = 'Failed to send BONK gift. Please try again.';
-      
-      if (error.message.includes('User rejected') || error.message.includes('cancelled')) {
+
+      if (
+        error.message.includes('User rejected') ||
+        error.message.includes('cancelled')
+      ) {
         errorMessage = 'Transaction was cancelled by user.';
       } else if (error.message.includes('Insufficient balance')) {
         errorMessage = error.message;
-      } else if (error.message.includes('auth_token not valid') || error.message.includes('session expired')) {
-        errorMessage = 'Wallet session expired. Please close and reopen the app, then try again.';
+      } else if (
+        error.message.includes('auth_token not valid') ||
+        error.message.includes('session expired')
+      ) {
+        errorMessage =
+          'Wallet session expired. Please close and reopen the app, then try again.';
       } else if (error.message.includes('User declined authorization')) {
-        errorMessage = 'Wallet authorization was declined. Please try again and approve the request.';
+        errorMessage =
+          'Wallet authorization was declined. Please try again and approve the request.';
       } else if (error.message.includes('No wallet selected')) {
-        errorMessage = 'No wallet was selected. Please select a wallet and try again.';
+        errorMessage =
+          'No wallet was selected. Please select a wallet and try again.';
       }
 
       Alert.alert('Gift Failed', errorMessage);
       await refreshAfterTransaction();
-      
     } finally {
       setGiftLoading(false);
     }
   };
 
-  const updateMemeGifts = (amount) => {
-    setMemesFeed(prevFeed => 
+  const updateMemeGifts = amount => {
+    setMemesFeed(prevFeed =>
       prevFeed.map(meme => {
         if (meme.id === selectedPostId) {
           const currentGifts = Array.isArray(meme.gifts) ? meme.gifts : [];
           return {
             ...meme,
-            gifts: [...currentGifts, { 
-              amount, 
-              token: 'BONK', 
-              userId: getValidUserId(user, walletInfo),
-              senderName: user?.username || user?.displayName || 'Anonymous',
-              timestamp: new Date().toISOString()
-            }]
+            gifts: [
+              ...currentGifts,
+              {
+                amount,
+                token: 'BONK',
+                userId: getValidUserId(user, walletInfo),
+                senderName: user?.username || user?.displayName || 'Anonymous',
+                timestamp: new Date().toISOString(),
+              },
+            ],
           };
         }
         return meme;
-      })
+      }),
     );
   };
 
   // Media Functions
   const pickMedia = async () => {
-    launchImageLibrary(
-      { mediaType: 'mixed', selectionLimit: 5 },
-      response => {
-        if (response.didCancel) return;
-        if (response.errorCode) {
-          Alert.alert('Error', response.errorMessage || 'Media selection failed.');
-          return;
-        }
-        const assets = response.assets || [];
-        if (assets.length > 0) {
-          setSelectedMedia(assets);
-        }
-      },
-    );
+    launchImageLibrary({ mediaType: 'mixed', selectionLimit: 5 }, response => {
+      if (response.didCancel) return;
+      if (response.errorCode) {
+        Alert.alert(
+          'Error',
+          response.errorMessage || 'Media selection failed.',
+        );
+        return;
+      }
+      const assets = response.assets || [];
+      if (assets.length > 0) {
+        setSelectedMedia(assets);
+      }
+    });
   };
 
   // Gift Amount Handlers
-  const handleGiftAmountChange = (text) => {
+  const handleGiftAmountChange = text => {
     const sanitized = text.replace(/[^0-9.]/g, '');
-    
+
     const parts = sanitized.split('.');
     if (parts.length > 2) {
       return;
     }
-    
+
     if (parts[1] && parts[1].length > BONK_CONFIG.DECIMALS) {
       parts[1] = parts[1].substring(0, BONK_CONFIG.DECIMALS);
     }
-    
+
     const finalValue = parts.join('.');
     setGiftAmount(finalValue);
   };
@@ -539,7 +609,7 @@ const TopMemesScreen = () => {
   };
 
   // Render Functions
-  const renderMedia = (mediaItems) => {
+  const renderMedia = mediaItems => {
     if (!Array.isArray(mediaItems) || mediaItems.length === 0) return null;
 
     if (mediaItems.length === 1) {
@@ -590,25 +660,26 @@ const TopMemesScreen = () => {
 
   const WalletAddress = ({ address, isValid }) => (
     <View style={styles.walletContainer}>
-      <MaterialCommunityIcons 
-        name={isValid ? "wallet" : "wallet-outline"} 
-        size={12} 
-        color={isValid ? web3Colors.success : web3Colors.warning} 
+      <MaterialCommunityIcons
+        name={isValid ? 'wallet' : 'wallet-outline'}
+        size={12}
+        color={isValid ? web3Colors.success : web3Colors.warning}
       />
-      <Text style={[
-        styles.walletText,
-        { color: isValid ? web3Colors.success : web3Colors.warning }
-      ]}>
-        {address && isValid 
-          ? `${address.slice(0, 4)}...${address.slice(-4)}` 
-          : 'Invalid wallet'
-        }
+      <Text
+        style={[
+          styles.walletText,
+          { color: isValid ? web3Colors.success : web3Colors.warning },
+        ]}
+      >
+        {address && isValid
+          ? `${address.slice(0, 4)}...${address.slice(-4)}`
+          : 'Invalid wallet'}
       </Text>
       {!isValid && address && (
-        <MaterialCommunityIcons 
-          name="alert-circle" 
-          size={12} 
-          color={web3Colors.warning} 
+        <MaterialCommunityIcons
+          name="alert-circle"
+          size={12}
+          color={web3Colors.warning}
         />
       )}
     </View>
@@ -617,79 +688,105 @@ const TopMemesScreen = () => {
   const StreamlinedWalletStatus = () => {
     return (
       <View style={styles.walletStatusContainer}>
-        <View style={[
-          styles.walletStatusBadge,
-          { 
-            backgroundColor: walletReady && isConnected 
-              ? 'rgba(78, 205, 196, 0.1)' 
-              : sessionError 
-                ? 'rgba(255, 107, 107, 0.1)' 
-                : 'rgba(255, 184, 0, 0.1)',
-            borderColor: walletReady && isConnected 
-              ? web3Colors.success
-              : sessionError 
+        <View
+          style={[
+            styles.walletStatusBadge,
+            {
+              backgroundColor:
+                walletReady && isConnected
+                  ? 'rgba(78, 205, 196, 0.1)'
+                  : sessionError
+                  ? 'rgba(255, 107, 107, 0.1)'
+                  : 'rgba(255, 184, 0, 0.1)',
+              borderColor:
+                walletReady && isConnected
+                  ? web3Colors.success
+                  : sessionError
+                  ? web3Colors.accent
+                  : web3Colors.warning,
+            },
+          ]}
+        >
+          <MaterialCommunityIcons
+            name={
+              walletReady && isConnected
+                ? 'wallet-check'
+                : sessionError
+                ? 'wallet-remove'
+                : 'wallet-outline'
+            }
+            size={16}
+            color={
+              walletReady && isConnected
+                ? web3Colors.success
+                : sessionError
                 ? web3Colors.accent
                 : web3Colors.warning
-          }
-        ]}>
-          <MaterialCommunityIcons 
-            name={walletReady && isConnected ? "wallet-check" : sessionError ? "wallet-remove" : "wallet-outline"}
-            size={16} 
-            color={walletReady && isConnected 
-              ? web3Colors.success
-              : sessionError 
-                ? web3Colors.accent
-                : web3Colors.warning}
-          />
-          <Text style={[
-            styles.walletStatusText,
-            { color: walletReady && isConnected 
-                ? web3Colors.success
-                : sessionError 
-                  ? web3Colors.accent
-                  : web3Colors.warning }
-          ]}>
-            {walletReady && isConnected && userPublicKey
-              ? `${userPublicKey.toBase58().slice(0, 4)}...${userPublicKey.toBase58().slice(-4)}`
-              : sessionError
-                ? 'Wallet Error'
-                : 'Connecting...'
             }
+          />
+          <Text
+            style={[
+              styles.walletStatusText,
+              {
+                color:
+                  walletReady && isConnected
+                    ? web3Colors.success
+                    : sessionError
+                    ? web3Colors.accent
+                    : web3Colors.warning,
+              },
+            ]}
+          >
+            {walletReady && isConnected && userPublicKey
+              ? `${userPublicKey.toBase58().slice(0, 4)}...${userPublicKey
+                  .toBase58()
+                  .slice(-4)}`
+              : sessionError
+              ? 'Wallet Error'
+              : 'Connecting...'}
           </Text>
         </View>
-        
+
         {walletReady && isConnected && (
           <View style={styles.connectedInfo}>
             <View style={styles.bonkBalanceDisplay}>
-              <MaterialCommunityIcons name="dog" size={14} color={web3Colors.bonk} />
+              <MaterialCommunityIcons
+                name="dog"
+                size={14}
+                color={web3Colors.bonk}
+              />
               <Text style={styles.bonkBalanceText}>
-                {balanceLoading ? 'Loading...' : 
-                 userBonkBalance !== null ? `${userBonkBalance.toLocaleString()}` : '0'} BONK
+                {balanceLoading
+                  ? 'Loading...'
+                  : userBonkBalance !== null
+                  ? `${userBonkBalance.toLocaleString()}`
+                  : '0'}{' '}
+                BONK
               </Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.balanceRefreshButton}
                 onPress={() => fetchBalance(true)}
                 disabled={balanceLoading}
               >
-                <Ionicons 
-                  name="refresh" 
-                  size={12} 
-                  color={web3Colors.primary} 
+                <Ionicons
+                  name="refresh"
+                  size={12}
+                  color={web3Colors.primary}
                   style={balanceLoading ? { opacity: 0.5 } : {}}
                 />
               </TouchableOpacity>
             </View>
-            
+
             <Text style={styles.walletSessionText}>
               Authenticated • Ready to send BONK for memes
             </Text>
           </View>
         )}
-        
+
         {sessionError && (
           <View style={styles.errorContainer}>
             <Text style={styles.walletErrorText}>{sessionError}</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.retryButton}
               onPress={refreshConnection}
             >
@@ -719,7 +816,7 @@ const TopMemesScreen = () => {
         animatedScales={animatedScales}
         onLike={handleLike}
         onShare={handleShare}
-        onComment={(postId) => {
+        onComment={postId => {
           setSelectedPostId(postId);
           setCommentModalVisible(true);
         }}
@@ -735,7 +832,7 @@ const TopMemesScreen = () => {
   return (
     <LinearGradient
       colors={[web3Colors.background, '#1A1B3A', web3Colors.background]}
-      style={{flex:1}}
+      style={{ flex: 1 }}
     >
       <StreamlinedWalletStatus />
 
@@ -750,7 +847,16 @@ const TopMemesScreen = () => {
           renderItem={renderItem}
           contentContainerStyle={styles.feedContainer}
           showsVerticalScrollIndicator={false}
-            ListFooterComponent={<View style={{ height: 50 }}/> }
+          ListFooterComponent={<View style={{ height: 50 }} />}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={[web3Colors.primary, web3Colors.secondary]} // Custom colors
+              progressBackgroundColor={web3Colors.surface}
+              tintColor={web3Colors.primary}
+            />
+          }
         />
       )}
 
@@ -806,11 +912,10 @@ const TopMemesScreen = () => {
 export default TopMemesScreen;
 
 export const styles = StyleSheet.create({
-  
   container: {
     flex: 1,
   },
-  
+
   // Wallet Status Styles
   walletStatusContainer: {
     flexDirection: 'row',
@@ -887,14 +992,14 @@ export const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-  
+
   // Loading Styles
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  
+
   loadingGradient: {
     width: 80,
     height: 80,
@@ -908,7 +1013,7 @@ export const styles = StyleSheet.create({
     color: web3Colors.textSecondary,
     fontWeight: '500',
   },
-  
+
   // Empty State
   emptyState: {
     flex: 1,
@@ -935,14 +1040,13 @@ export const styles = StyleSheet.create({
     color: web3Colors.textSecondary,
     textAlign: 'center',
   },
-  
+
   // Feed Container
   feedContainer: {
     paddingVertical: 10,
-    paddingBottom:50
-   
+    paddingBottom: 50,
   },
-  
+
   // Meme Card Styles
   memeCard: {
     backgroundColor: web3Colors.cardBg,
@@ -961,7 +1065,7 @@ export const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
   },
-  
+
   // Post Header
   postHeader: {
     flexDirection: 'row',
@@ -1077,7 +1181,7 @@ export const styles = StyleSheet.create({
     color: web3Colors.accent,
     marginLeft: 4,
   },
-  
+
   // Meme Text
   memeText: {
     fontSize: 16,
@@ -1086,7 +1190,7 @@ export const styles = StyleSheet.create({
     marginBottom: 12,
     fontWeight: '500',
   },
-  
+
   // Media Styles
   singleMedia: {
     width: '100%',
@@ -1111,7 +1215,7 @@ export const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: web3Colors.darkOverlay,
   },
-  
+
   // Stats Container
   statsContainer: {
     flexDirection: 'row',
@@ -1133,7 +1237,7 @@ export const styles = StyleSheet.create({
     marginLeft: 4,
     fontWeight: '500',
   },
-  
+
   // Action Row
   actionRow: {
     flexDirection: 'row',
@@ -1173,7 +1277,7 @@ export const styles = StyleSheet.create({
   giftButtonDisconnected: {
     backgroundColor: 'rgba(139, 140, 167, 0.1)',
   },
-  
+
   // Gifts Preview
   giftsPreview: {
     marginTop: 12,
@@ -1207,7 +1311,7 @@ export const styles = StyleSheet.create({
     color: web3Colors.textSecondary,
     marginLeft: 4,
   },
-  
+
   // FAB
   fab: {
     position: 'absolute',
@@ -1232,7 +1336,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  
+
   // Modal Styles
   modalContainer: {
     flex: 1,
@@ -1263,7 +1367,7 @@ export const styles = StyleSheet.create({
   closeButton: {
     padding: 4,
   },
-  
+
   // Create Modal Body
   createModalBody: {
     maxHeight: 400,
@@ -1290,7 +1394,7 @@ export const styles = StyleSheet.create({
     borderColor: web3Colors.border,
     minHeight: 100,
   },
-  
+
   // Pick Button
   pickButton: {
     marginBottom: 20,
@@ -1308,7 +1412,7 @@ export const styles = StyleSheet.create({
     color: 'white',
     marginLeft: 8,
   },
-  
+
   // Media Preview
   mediaPreviewSection: {
     marginBottom: 20,
@@ -1338,7 +1442,7 @@ export const styles = StyleSheet.create({
     backgroundColor: web3Colors.cardBg,
     borderRadius: 10,
   },
-  
+
   // Features Card
   featuresCard: {
     backgroundColor: web3Colors.glassOverlay,
@@ -1358,7 +1462,7 @@ export const styles = StyleSheet.create({
     color: web3Colors.textSecondary,
     lineHeight: 20,
   },
-  
+
   // Modal Actions
   modalActions: {
     flexDirection: 'row',
@@ -1381,7 +1485,7 @@ export const styles = StyleSheet.create({
     color: 'white',
     marginLeft: 8,
   },
-  
+
   // Gift Modal Styles
   giftModalContent: {
     width: width * 0.95,
@@ -1409,7 +1513,7 @@ export const styles = StyleSheet.create({
     maxHeight: 400,
     paddingHorizontal: 20,
   },
-  
+
   // Gift Balance Card
   giftBalanceCard: {
     backgroundColor: web3Colors.glassOverlay,
@@ -1497,7 +1601,7 @@ export const styles = StyleSheet.create({
     color: web3Colors.secondary,
     fontWeight: '500',
   },
-  
+
   // Gift Recipient Card
   giftRecipientCard: {
     backgroundColor: web3Colors.glassOverlay,
@@ -1542,7 +1646,7 @@ export const styles = StyleSheet.create({
     color: web3Colors.bonk,
     fontWeight: '600',
   },
-  
+
   // Gift Input Container
   giftInputContainer: {
     marginBottom: 16,
@@ -1584,7 +1688,7 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'white',
   },
-  
+
   // Quick Amount Buttons
   giftQuickAmountContainer: {
     flexDirection: 'row',
@@ -1606,7 +1710,7 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
     color: web3Colors.text,
   },
-  
+
   // Validation Error
   giftValidationErrorText: {
     fontSize: 12,
@@ -1614,7 +1718,7 @@ export const styles = StyleSheet.create({
     marginTop: 4,
     fontWeight: '500',
   },
-  
+
   // Gift Post Preview Card
   giftPostPreviewCard: {
     backgroundColor: web3Colors.glassOverlay,
@@ -1646,7 +1750,7 @@ export const styles = StyleSheet.create({
     color: web3Colors.textSecondary,
     fontStyle: 'italic',
   },
-  
+
   // Gift Transaction Info
   giftTransactionInfo: {
     backgroundColor: 'rgba(255, 107, 53, 0.1)',
@@ -1690,7 +1794,7 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
-  
+
   // Gift Modal Actions
   giftModalActions: {
     flexDirection: 'row',

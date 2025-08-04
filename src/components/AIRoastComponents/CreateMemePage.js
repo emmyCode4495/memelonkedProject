@@ -1,4 +1,7 @@
-import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View, Image, Pressable, Alert, FlatList, Modal, ScrollView, Platform } from 'react-native'
+import { ActivityIndicator, StyleSheet,
+   Text, TextInput, TouchableOpacity, View, Image, Pressable,
+    Alert, FlatList, Modal, 
+    ScrollView, Platform, RefreshControl } from 'react-native'
 import React, { useState, useContext } from 'react'
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
@@ -35,6 +38,7 @@ const CreateMemePage = () => {
   const [selectedSound, setSelectedSound] = useState(null);
   const [showSoundPicker, setShowSoundPicker] = useState(false);
   const [customSoundUri, setCustomSoundUri] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   const navigation = useNavigation();
   const { user, walletInfo } = useContext(AuthContext) || {};
@@ -61,6 +65,23 @@ const CreateMemePage = () => {
     
     return `temp_user_${Date.now()}`;
   };
+
+
+  // Add refresh handler function
+const handleRefresh = () => {
+  setRefreshing(true);
+  
+  // Reset relevant states
+  setGeneratedRoast('');
+  setInputText('');
+  setLoading(false);
+  
+  // Simulate refresh delay
+  setTimeout(() => {
+    setRefreshing(false);
+  }, 1000);
+};
+
 
   const handleSelectMedia = () => {
     launchImageLibrary(

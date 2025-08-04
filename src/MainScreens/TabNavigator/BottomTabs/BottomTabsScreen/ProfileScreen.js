@@ -165,7 +165,7 @@ const ProfileScreen = () => {
               </View>
             ) : userProfile ? (
               <>
-                {/* Avatar with Logout Button */}
+            
                 <View style={styles.avatarContainer}>
                   <LinearGradient
                     colors={[web3Colors.gradient1, web3Colors.gradient2]}
@@ -178,7 +178,7 @@ const ProfileScreen = () => {
                     />
                   </LinearGradient>
                   
-                  {/* Logout Button beside avatar */}
+             
                   <TouchableOpacity 
                     style={styles.logoutIconButton} 
                     onPress={handleLogout}
@@ -221,6 +221,7 @@ const ProfileScreen = () => {
             )}
           </LinearGradient>
         </View>
+
 
         {/* Stats Cards */}
         {userProfile && (
@@ -290,9 +291,7 @@ const ProfileScreen = () => {
           </View>
         </View>
 
-        {/* Logout Section - Removed since it's now beside avatar */}
-
-        {/* Bottom Padding */}
+    
         <View style={styles.bottomPadding} />
       </ScrollView>
     </View>
