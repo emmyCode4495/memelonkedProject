@@ -183,13 +183,12 @@ const ReelsCommentModal = ({
       });
       
       console.log('Reply posted successfully:', response.data);
-      
-      // Clear states and close modal
+ 
       setReplyInput('');
       setReplyModalVisible(false);
       setReplyingToComment(null);
       
-      // Refresh comments to show the new reply
+
       await fetchComments();
     } catch (err) {
       console.log('Failed to post reply:', {
@@ -200,7 +199,7 @@ const ReelsCommentModal = ({
         url: err.config?.url
       });
       
-      // Show error to user (you might want to add a toast/alert here)
+     
       Alert.alert(
         'Reply Failed',
         'Could not post your reply. Please try again.',
@@ -211,7 +210,7 @@ const ReelsCommentModal = ({
     }
   };
 
-  // Fixed useEffect - only fetch comments when modal is visible and reelId exists
+
   useEffect(() => {
     if (visible && reelId) {
       console.log('Modal opened, fetching comments for reel:', reelId);

@@ -9,8 +9,6 @@ import { getPublicKeyFromAddress } from '../../../utils/getPublicKeyFromAddress'
 import enndpoint from '../../../constants/enndpoint';
 
 
-
-
 export default function ConnectButton({ onConnect }) {
   const { login } = useContext(AuthContext);
 

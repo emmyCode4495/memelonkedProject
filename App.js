@@ -19,20 +19,19 @@ const App = () => {
   useEffect(() => {
     const prepare = async () => {
       try {
-        // simulate async tasks like font loading, auth check
         await new Promise(resolve => setTimeout(resolve, 1000));
       } catch (e) {
         console.warn(e);
       } finally {
         setAppIsReady(true);
-        RNBootSplash.hide({ fade: true }); // Hide only when ready
+        RNBootSplash.hide({ fade: true }); 
       }
     };
 
     prepare();
   }, []);
 
-  if (!appIsReady) return null; // Don’t render UI until ready
+  if (!appIsReady) return null; 
 
   return (
     <SafeAreaProvider>

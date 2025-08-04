@@ -40,7 +40,7 @@ const CommentModal = ({
   postId,
   userId,
   endpoint,
-  commentId, // This will be used for fetching replies to a specific comment
+  commentId, 
 }) => {
   const [comments, setComments] = useState([]);
   const [commentInput, setCommentInput] = useState('');
@@ -52,12 +52,11 @@ const CommentModal = ({
   const [replyInput, setReplyInput] = useState('');
   const [postingReply, setPostingReply] = useState(false);
 
-  // New state for managing expanded replies
+  
   const [expandedComments, setExpandedComments] = useState(new Set());
   const [repliesData, setRepliesData] = useState({});
   const [loadingReplies, setLoadingReplies] = useState(new Set());
 
-  // Determine if we're showing replies to a specific comment or all comments
   const isShowingReplies = !!commentId;
 
   const getTimeAgo = timestamp => {
@@ -83,7 +82,7 @@ const CommentModal = ({
     return `${diffInDays}d ago`;
   };
 
-  // Fetch all comments for a post
+  
   const fetchComments = async () => {
     setLoading(true);
     try {
@@ -99,7 +98,7 @@ const CommentModal = ({
     }
   };
 
-  // Fetch replies to a specific comment
+  
   const fetchReplyComments = async () => {
     if (!commentId) return;
     setLoading(true);
@@ -117,7 +116,7 @@ const CommentModal = ({
     }
   };
 
-  // Fetch replies for a specific comment (for expanding)
+
   const fetchRepliesForComment = async (commentItemId) => {
     setLoadingReplies(prev => new Set([...prev, commentItemId]));
     try {
@@ -145,17 +144,17 @@ const CommentModal = ({
     }
   };
 
-  // Toggle replies visibility
+ 
   const toggleReplies = async (commentItemId, replyCount) => {
     if (expandedComments.has(commentItemId)) {
-      // Collapse replies
+ 
       setExpandedComments(prev => {
         const newSet = new Set([...prev]);
         newSet.delete(commentItemId);
         return newSet;
       });
     } else {
-      // Expand replies
+ 
       if (!repliesData[commentItemId] && replyCount > 0) {
         await fetchRepliesForComment(commentItemId);
       }
@@ -163,7 +162,7 @@ const CommentModal = ({
     }
   };
 
-  // Post a new comment to the post
+ 
   const postComment = async () => {
     if (!commentInput.trim()) return;
     setPosting(true);
@@ -177,22 +176,22 @@ const CommentModal = ({
       );
       setCommentInput('');
       
-      // Add the new comment to the list immediately for better UX
+      
       if (response.data.comment) {
         setComments(prevComments => [response.data.comment, ...prevComments]);
       } else {
-        // Fallback: refetch all comments
+       
         await fetchComments();
       }
     } catch (err) {
       console.log('Failed to post comment:', err);
-      // Optionally show an error message to the user
+    
     } finally {
       setPosting(false);
     }
   };
 
-  // Post a reply to a specific comment
+
   const postReplyComment = async (parentCommentId, replyText) => {
     if (!replyText.trim()) return;
     setPostingReply(true);
@@ -205,14 +204,13 @@ const CommentModal = ({
         },
       );
       
-      // Add the new reply to the appropriate replies data
+   
       if (response.data.reply) {
         setRepliesData(prev => ({
           ...prev,
           [parentCommentId]: [response.data.reply, ...(prev[parentCommentId] || [])]
         }));
-        
-        // Update the parent comment's reply count
+     
         setComments(prevComments => 
           prevComments.map(comment => 
             comment.id === parentCommentId 
@@ -221,10 +219,10 @@ const CommentModal = ({
           )
         );
         
-        // Ensure the replies are expanded to show the new reply
+      
         setExpandedComments(prev => new Set([...prev, parentCommentId]));
       } else {
-        // Fallback: refetch comments/replies
+     
         if (isShowingReplies) {
           await fetchReplyComments();
         } else {
@@ -233,13 +231,13 @@ const CommentModal = ({
       }
     } catch (err) {
       console.log('Failed to post reply:', err);
-      // Optionally show an error message to the user
+  
     } finally {
       setPostingReply(false);
     }
   };
 
-  // Handle liking a comment
+
   const handleLikeComment = async (commentItemId) => {
     try {
       const response = await axios.post(
@@ -247,7 +245,7 @@ const CommentModal = ({
         { userId }
       );
       
-      // Update the comment in the local state
+ 
       setComments(prevComments => 
         prevComments.map(comment => 
           comment.id === commentItemId 
@@ -264,7 +262,6 @@ const CommentModal = ({
     }
   };
 
-  // Handle liking a reply
   const handleLikeReply = async (replyId, parentCommentId) => {
     try {
       const response = await axios.post(
@@ -272,7 +269,7 @@ const CommentModal = ({
         { userId }
       );
       
-      // Update the reply in the replies data
+   
       setRepliesData(prev => ({
         ...prev,
         [parentCommentId]: prev[parentCommentId]?.map(reply => 
@@ -290,7 +287,7 @@ const CommentModal = ({
     }
   };
 
-  // Fetch data when modal becomes visible
+
   useEffect(() => {
     if (visible) {
       if (isShowingReplies) {
@@ -301,21 +298,21 @@ const CommentModal = ({
     }
   }, [visible, commentId]);
 
-  // Render a single reply with connecting line
+  
   const renderReply = (reply, index, totalReplies, parentCommentId) => {
     const isLast = index === totalReplies - 1;
     
     return (
       <View key={reply.id} style={styles.replyContainer}>
-        {/* Connecting lines */}
+  
         <View style={styles.replyLineContainer}>
-          {/* Vertical line from parent */}
+  
           <View style={[styles.verticalLine, { height: isLast ? 20 : '100%' }]} />
-          {/* Horizontal line to reply */}
+      
           <View style={styles.horizontalLine} />
         </View>
         
-        {/* Reply content */}
+       
         <View style={styles.replyContent}>
           <LinearGradient
             colors={['rgba(255, 255, 255, 0.03)', 'rgba(255, 255, 255, 0.01)']}
@@ -386,7 +383,7 @@ const CommentModal = ({
               </View>
             )}
 
-            {/* Only show reply button if we're not already showing replies */}
+          
             {!isShowingReplies && (
               <TouchableOpacity
                 style={styles.replyButton}
@@ -837,7 +834,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   
-  // New styles for threaded replies
   repliesSection: {
     marginTop: 8,
   },

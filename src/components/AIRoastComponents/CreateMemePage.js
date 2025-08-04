@@ -14,7 +14,6 @@ import { AuthContext } from '../../persistence/AuthContext';
 import {  HF_TOKEN, HF_API_URL } from '@env';
 
 
-// Web3 color scheme (extracted from first file)
 const web3Colors = {
   primary: '#00D4FF',
   secondary: '#FF6B35',
@@ -44,7 +43,7 @@ const CreateMemePage = () => {
   const { user, walletInfo } = useContext(AuthContext) || {};
 
 
-  // Dynamic user ID mapping function
+ 
   const getValidUserId = (user, walletInfo) => {
     const possibleIds = [
       user?.id,
@@ -67,16 +66,16 @@ const CreateMemePage = () => {
   };
 
 
-  // Add refresh handler function
+  
 const handleRefresh = () => {
   setRefreshing(true);
   
-  // Reset relevant states
+
   setGeneratedRoast('');
   setInputText('');
   setLoading(false);
   
-  // Simulate refresh delay
+
   setTimeout(() => {
     setRefreshing(false);
   }, 1000);
@@ -103,58 +102,7 @@ const handleRefresh = () => {
     );
   };
 
-  const handleSelectCustomSound = () => {
-    const options = {
-      mediaType: 'mixed',
-      selectionLimit: 1,
-      includeBase64: false,
-      quality: 1,
-    };
 
-   
-    if (Platform.OS === 'ios') {
-      options.mediaTypes = 'All'; 
-    }
-
-    launchImageLibrary(
-      options,
-      (response) => {
-        if (response.didCancel) {
-          console.log('User cancelled sound picker');
-        } else if (response.errorCode) {
-          console.log('Audio Picker Error: ', response.errorMessage);
-          Alert.alert('Error', 'Failed to select audio file');
-        } else {
-          const asset = response.assets[0];
-          
-          // Check if it's an audio file or if we can't determine the type
-          const isAudioFile = asset.type?.startsWith('audio') || 
-                             asset.fileName?.match(/\.(mp3|wav|m4a|aac|ogg|flac)$/i);
-          
-          if (isAudioFile || !asset.type) {
-          
-            setCustomSoundUri(asset.uri);
-            setSelectedSound({
-              id: 'custom',
-              name: asset.fileName || 'Custom Audio',
-              duration: 'Custom',
-              url: asset.uri
-            });
-            setShowSoundPicker(false);
-          } else {
-            Alert.alert(
-              'Invalid File Type', 
-              'Please select an audio file (MP3, WAV, M4A, AAC, etc.)',
-              [
-                { text: 'Try Again', onPress: () => handleSelectCustomSound() },
-                { text: 'Cancel', style: 'cancel' }
-              ]
-            );
-          }
-        }
-      }
-    );
-  };
 
   const generateRoast = async () => {
     if (!inputText.trim()) return;
@@ -209,13 +157,13 @@ const handleRefresh = () => {
 
       const finalRoast = roastText || fallbackRoasts[Math.floor(Math.random() * fallbackRoasts.length)];
       setGeneratedRoast(finalRoast);
-      setInputText(finalRoast); // Replace the input text with generated roast
+      setInputText(finalRoast); 
 
     } catch (error) {
       console.log('API Error:', error);
       const finalRoast = fallbackRoasts[Math.floor(Math.random() * fallbackRoasts.length)];
       setGeneratedRoast(finalRoast);
-      setInputText(finalRoast); // Replace the input text with generated roast
+      setInputText(finalRoast); 
     } finally {
       setLoading(false);
     }
@@ -230,22 +178,22 @@ const handleRefresh = () => {
     setPosting(true);
 
     try {
-      // Prepare media items array
+     
       const mediaItems = [{
-        url: mediaUri, // In real app, this would be uploaded to cloud storage first
+        url: mediaUri, 
         type: mediaType
       }];
 
     
-      // Prepare meme data according to backend requirements
+     
       const memeData = {
         userId: getValidUserId(user, walletInfo),
-        memeText: inputText, // Use the text from input box (which now contains the generated roast)
+        memeText: inputText, 
         mediaItems: mediaItems
       };
 
       console.log("Sent detaiils: ",memeData)
-      // Replace with your actual backend endpoint
+  
       const response = await axios.post(`${enndpoint.main}/api/memes/create`, memeData);
 
       if (response.status === 200 || response.status === 201) {
